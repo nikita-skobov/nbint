@@ -12,6 +12,11 @@ fn from_elem(c: &mut Criterion) {
     c.bench_with_input(BenchmarkId::new("count_zeros", "data_vec"), &data, |b, s| {
         b.iter(|| lib::count_zeros(&s));
     });
+
+    let data = vec![32, 32, 0, 0, 0, 0, 0, 32, 32];
+    c.bench_with_input(BenchmarkId::new("count_leading_zeros", "data_vec"), &data, |b, s| {
+        b.iter(|| lib::count_leading_zeros(&s, 200, 12, 0));
+    });
 }
 
 criterion_group!(benches, from_elem);
