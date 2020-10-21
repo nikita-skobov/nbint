@@ -102,6 +102,20 @@ pub fn count_leading_bits(
     }
     leading_bits
 }
+pub fn count_leading_zeros(
+    data: &[u8],
+    bin_size: usize,
+    bit_offset: usize,
+) -> usize {
+    count_leading_bits(data, bin_size, bit_offset, 0)
+}
+pub fn count_leading_ones(
+    data: &[u8],
+    bin_size: usize,
+    bit_offset: usize,
+) -> usize {
+    count_leading_bits(data, bin_size, bit_offset, 1)
+}
 
 #[cfg(test)]
 mod tests {
