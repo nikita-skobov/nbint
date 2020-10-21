@@ -6,7 +6,7 @@ pub trait GetBitAt {
     fn get_byte_at(&self, pos: usize) -> (u8, usize);
 }
 
-impl GetBitAt for Vec<u8> {
+impl GetBitAt for [u8] {
     // slow but necessary for random access
     fn get_bit_at(&self, pos: usize) -> u8 {
         let (byte, byte_index) = self.get_byte_at(pos);
@@ -52,9 +52,51 @@ pub fn count_ones(data: &[u8]) -> u32 {
     count_bits_internal(data, 1)
 }
 
+/// given data, and an arbitrary bound of bit positions
+/// ie: bin offset is the start, and bin size + bin offset is the end
+/// find how many leading bits of zero or one are in that bound.
+/// this function will handle overflow, eg: if you pass 1 byte, and try
+/// to get leading zeros from bit offset 7 with bin size 4, then it will read
+/// the 7th bit, and then overflow back to 0, 1, and 2.
+pub fn count_leading_zeros(
+    data: &[u8],
+    bin_size: usize,
+    bit_offset: usize,
+    zero_or_one: u8,
+) -> usize {
+    assert!(zero_or_one == 0 || zero_or_one == 1);
+
+    let data_size_bits = data.len() * 8;
+    let mut leading_bits = 0;
+    for i in bit_offset..bit_offset+bin_size {
+        // handle overflow, ie: go back around to 0 if we pass the limit
+        let i = if i >= data_size_bits { i - data_size_bits } else { i };
+        if data.get_bit_at(i) == zero_or_one {
+            leading_bits += 1;
+        } else {
+            break;
+        }
+    }
+    leading_bits
+}
+
 #[cfg(test)]
 mod tests {
     use super::count_zeros;
+    use super::count_leading_zeros;
+
+    #[test]
+    fn count_leading_zeros_works() {
+        let data = [0b00000000,0b00000000,0b00000000];
+        assert_eq!(24, count_leading_zeros(&data, data.len()*8, 0, 0));
+        let data = [0b00000001,0b00000000,0b00000000];
+        assert_eq!(7, count_leading_zeros(&data, data.len()*8, 0, 0));
+        // test that the overflow works. this will count 8 bits in the last byte
+        // because offset is 16, and then it overflows to first bit of first byte
+        // counts that as 9, and then breaks because next is a 1.
+        let data = [0b01000001,0b00000000,0b00000000];
+        assert_eq!(9, count_leading_zeros(&data, data.len()*8, 16, 0));
+    }
 
     #[test]
     fn count_zeros_works() {
