@@ -66,15 +66,38 @@ pub fn count_leading_bits(
 ) -> usize {
     assert!(zero_or_one == 0 || zero_or_one == 1);
 
-    let data_size_bits = data.len() * 8;
+    // it is assumed that there can not be
+    // overflow on the first bin size and offset,
+    // ie: user who is calling this function is not
+    // calling with bit offset > data_size_bits
+    let data_size_bytes = data.len();
     let mut leading_bits = 0;
-    for i in bit_offset..bit_offset+bin_size {
-        // handle overflow, ie: go back around to 0 if we pass the limit
-        let i = if i >= data_size_bits { i - data_size_bits } else { i };
-        if data.get_bit_at(i) == zero_or_one {
+    let (mut current_byte, mut current_byte_index) = data.get_byte_at(bit_offset);
+    let bit_index_of_byte = current_byte_index << 3; // multiply by 8
+    let mut offset = bit_offset - bit_index_of_byte;
+
+    for _ in 0..bin_size {
+        let mask = 1 << (7 - offset);
+        let val = current_byte & mask;
+        if val == zero_or_one {
             leading_bits += 1;
         } else {
             break;
+        }
+
+        // calculate next byte/offset
+        // by doing this calculation here,
+        // we can prevent using the get_bit_at trait, which is slow
+        // but here we keep the current byte cached for 8 ops, so much faster
+        offset += 1;
+        if offset == BITS_IN_BYTE {
+            offset = 0;
+            current_byte_index += 1;
+            // handle overflow, ie: go back around to 0 if we pass the limit
+            if current_byte_index == data_size_bytes {
+                current_byte_index = 0;
+            }
+            current_byte = data[current_byte_index];
         }
     }
     leading_bits
