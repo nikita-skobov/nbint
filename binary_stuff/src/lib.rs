@@ -58,7 +58,7 @@ pub fn count_ones(data: &[u8]) -> u32 {
 /// this function will handle overflow, eg: if you pass 1 byte, and try
 /// to get leading zeros from bit offset 7 with bin size 4, then it will read
 /// the 7th bit, and then overflow back to 0, 1, and 2.
-pub fn count_leading_zeros(
+pub fn count_leading_bits(
     data: &[u8],
     bin_size: usize,
     bit_offset: usize,
@@ -83,19 +83,19 @@ pub fn count_leading_zeros(
 #[cfg(test)]
 mod tests {
     use super::count_zeros;
-    use super::count_leading_zeros;
+    use super::count_leading_bits;
 
     #[test]
     fn count_leading_zeros_works() {
         let data = [0b00000000,0b00000000,0b00000000];
-        assert_eq!(24, count_leading_zeros(&data, data.len()*8, 0, 0));
+        assert_eq!(24, count_leading_bits(&data, data.len()*8, 0, 0));
         let data = [0b00000001,0b00000000,0b00000000];
-        assert_eq!(7, count_leading_zeros(&data, data.len()*8, 0, 0));
+        assert_eq!(7, count_leading_bits(&data, data.len()*8, 0, 0));
         // test that the overflow works. this will count 8 bits in the last byte
         // because offset is 16, and then it overflows to first bit of first byte
         // counts that as 9, and then breaks because next is a 1.
         let data = [0b01000001,0b00000000,0b00000000];
-        assert_eq!(9, count_leading_zeros(&data, data.len()*8, 16, 0));
+        assert_eq!(9, count_leading_bits(&data, data.len()*8, 16, 0));
     }
 
     #[test]
