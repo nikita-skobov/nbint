@@ -1,0 +1,13 @@
+[package]
+name = "binary_stuff"
+version = "0.1.0"
+authors = ["nikita-skobov"]
+edition = "2018"
+
+
+[dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "my_benchmark"
+harness = false
