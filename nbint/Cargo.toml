@@ -1,0 +1,18 @@
+[package]
+name = "nbint"
+version = "1.0.0"
+authors = ["nikita-skobov"]
+edition = "2018"
+
+[dependencies]
+rayon = "1.4.1"
+binary_stuff = { path = "../binary_stuff" }
+die = { path = "../my-git-tools/die" }
+
+[[bin]]
+name = "nbint-consec"
+path = "src/bin/consec.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
