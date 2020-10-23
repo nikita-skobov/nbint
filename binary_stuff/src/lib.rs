@@ -187,6 +187,20 @@ pub fn count_max_consecutive_bits(
 
     (max_consec, max_at)
 }
+pub fn count_max_consecutive_zeros(
+    data: &[u8],
+    bin_size: usize,
+    bit_offset: usize,
+) -> (usize, usize) {
+    count_max_consecutive_bits(data, bin_size, bit_offset, 0)
+}
+pub fn count_max_consecutive_ones(
+    data: &[u8],
+    bin_size: usize,
+    bit_offset: usize,
+) -> (usize, usize) {
+    count_max_consecutive_bits(data, bin_size, bit_offset, 1)
+}
 
 #[cfg(test)]
 mod tests {
