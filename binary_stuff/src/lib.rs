@@ -79,6 +79,7 @@ pub fn count_leading_bits(
     for _ in 0..bin_size {
         let mask = 1 << (7 - offset);
         let val = current_byte & mask;
+        let val = if val == 0 { 0 } else { 1 };
         if val == zero_or_one {
             leading_bits += 1;
         } else {
