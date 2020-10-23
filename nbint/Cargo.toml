@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 rayon = "1.4.1"
 binary_stuff = { path = "../binary_stuff" }
-die = { path = "../my-git-tools/die" }
+die = { path = "../die" }
 
 [[bin]]
 name = "nbint-consec"
