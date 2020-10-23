@@ -117,10 +117,102 @@ pub fn count_leading_ones(
     count_leading_bits(data, bin_size, bit_offset, 1)
 }
 
+
+/// given some data, and the usual bin_size, bin_offset args,
+/// iterate over the data and find the maximum amount of consecutive
+/// bits of the bit_type. returns tuple of:
+/// (max, where_max_occurs)
+pub fn count_max_consecutive_bits(
+    data: &[u8],
+    bin_size: usize,
+    bit_offset: usize,
+    zero_or_one: u8,
+) -> (usize, usize) {
+    assert!(zero_or_one == 0 || zero_or_one == 1);
+    // it is assumed that there can not be
+    // overflow on the first bin size and offset,
+    // ie: user who is calling this function is not
+    // calling with bit offset > data_size_bits
+    let data_size_bytes = data.len();
+    let mut max_consec = 0;
+    let mut max_at = bit_offset;
+    let (mut current_byte, mut current_byte_index) = data.get_byte_at(bit_offset);
+    let bit_index_of_byte = current_byte_index << 3; // multiply by 8
+    let mut offset = bit_offset - bit_index_of_byte;
+    let mut current_consec = 0;
+    let mut current_at = max_at;
+
+    for i in 0..bin_size {
+        let mask = 1 << (7 - offset);
+        let val = current_byte & mask;
+        let val = if val == 0 { 0 } else { 1 };
+        if val == zero_or_one {
+            current_consec += 1;
+        } else {
+            if current_consec > max_consec {
+                max_consec = current_consec;
+                max_at = current_at;
+            }
+
+            current_consec = 0;
+            // the plus 1 is because if our current
+            // position is NOT the desired bit type
+            // then the next index is the start of
+            // the desired bit type
+            current_at = bit_offset + i + 1;
+        }
+
+        // calculate next byte/offset
+        // by doing this calculation here,
+        // we can prevent using the get_bit_at trait, which is slow
+        // but here we keep the current byte cached for 8 ops, so much faster
+        offset += 1;
+        if offset == BITS_IN_BYTE {
+            offset = 0;
+            current_byte_index += 1;
+            // handle overflow, ie: go back around to 0 if we pass the limit
+            if current_byte_index == data_size_bytes {
+                current_byte_index = 0;
+            }
+            current_byte = data[current_byte_index];
+        }
+    }
+
+    // if we ended the iteration and our current was greater than max
+    if current_consec > max_consec {
+        max_consec = current_consec;
+        max_at = current_at;
+    }
+
+    (max_consec, max_at)
+}
+
 #[cfg(test)]
 mod tests {
     use super::count_zeros;
     use super::count_leading_bits;
+    use super::count_max_consecutive_bits;
+
+    #[test]
+    fn count_max_consecutive_bits_works() {
+        // max consec ones here   v
+        let data = [0b01010101, 0b10101010, 0b01010101];
+        // max consecutive zeros occurs here  ^
+        let (max_zeros, at_zeros) = count_max_consecutive_bits(&data, data.len()*8, 0, 0);
+        let (max_ones, at_ones) = count_max_consecutive_bits(&data, data.len()*8, 0, 1);
+        assert_eq!(max_zeros, 2);
+        assert_eq!(at_zeros, 15);
+        assert_eq!(max_ones, 2);
+        assert_eq!(at_ones, 7);
+
+        let data = [0b11101111, 0b11111111];
+        let (max_zeros, at_zeros) = count_max_consecutive_bits(&data, data.len()*8, 0, 0);
+        let (max_ones, at_ones) = count_max_consecutive_bits(&data, data.len()*8, 0, 1);
+        assert_eq!(max_zeros, 1);
+        assert_eq!(at_zeros, 3);
+        assert_eq!(max_ones, 12);
+        assert_eq!(at_ones, 4);
+    }
 
     #[test]
     fn count_leading_zeros_works() {
