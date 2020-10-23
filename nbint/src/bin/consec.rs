@@ -5,9 +5,12 @@ use die::*;
 
 const REQUIRED_NUM_ARGS: usize = 1;
 const DEFAULT_USE_BITS: &str = "zeros";
-/// I wrote this for my own processor, 16 max threads, so divide
-/// any file into 16 (if possible), TODO: make this a cli arg
-const MAX_FILE_SEGMENTS: usize = 16;
+/// divide the file into this many segments
+/// and pass each segment to the threadpool. the
+/// threadpool library will decide how many threads
+/// to spawn according to users system. this number determines
+/// the size of the queue passed to the thread pool library
+const MAX_FILE_SEGMENTS: usize = 128;
 
 #[derive(Copy, Clone)]
 pub enum CountBit {
