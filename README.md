@@ -10,7 +10,7 @@ Currently there is only `nbint-consec` which will count the max number of consec
 
 ```sh
 git clone https://github.com/nikita-skobov/nbint
-cd nbint
+cd nbint/nbint
 cargo build --release
 ```
 
